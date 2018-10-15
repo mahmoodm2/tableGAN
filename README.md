@@ -39,10 +39,10 @@ To **Train** a model with the datasets it is required to run the follwong scipt 
    - **TEST_ID** parameter is a parameter defining a set of internal paramaters affecting the quality or privacy level of synthesized data. 
            
         - **TEST_ID** used in training and generating command lines should have one of the following values :
-            -   'dcgan'   : 'beta':0.0 , 'delta_v': 0.0 , 'delta_m' : 0.0         --> Best Quality in the Generated Outputs
+            -   'dcgan'   : 'beta':0.0 , 'delta_v': 0.0 , 'delta_m' : 0.0        
             -   'OI_11_00': 'beta':1.0 , 'delta_v': 0.0 , 'delta_m' : 0.0
             -   'OI_11_11': 'beta':1.0 , 'delta_v': 0.1 , 'delta_m' : 0.1 
-            -   'OI_11_22': 'beta':1.0 , 'delta_v': 0.2 , 'delta_m' : 0.2        --> Best Privacy in the Generated Outputs        
+            -   'OI_11_22': 'beta':1.0 , 'delta_v': 0.2 , 'delta_m' : 0.2                
          
     
    - **--train** parameter indicates the training phase of the model and is very important to be placed in the command line
