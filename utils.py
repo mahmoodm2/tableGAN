@@ -1,8 +1,8 @@
 """
-Adopted from DCGAN paper : https://arxiv.org/abs/1511.06434
-Authors: Mahmoud Mohamadi, Noseong Park
-Created : 06/20/2017
-Modified: 10/10/2018
+Paper: http://www.vldb.org/pvldb/vol11/p1071-park.pdf
+Authors: Mahmoud Mohammadi, Noseong Park Adopted from https://github.com/carpedm20/DCGAN-tensorflow
+Created : 07/20/2017
+Modified: 10/15/2018
 """
 from __future__ import division
 import math

@@ -1,12 +1,14 @@
 # table-GAN
-**table-GAN** is a synthetic data generation tool which has been implemented using a deep learnign model based on **Generative Adversarial Network** architecture. The goal of this tool is to protect sensitive data against re-identification attacks by producing syhtetic data out of real data while preserving statitical features. 
+**tableGAN** is the implementation of [Data Synthesis based on Generative Adversarial Networks](http://www.vldb.org/pvldb/vol11/p1071-park.pdf "tableGAN") paper. It is a synthetic data generation technique which has been implemented using a deep learnign model based on **Generative Adversarial Network (GAN)** architecture. The goal of this technique is to protect sensitive data against re-identification attacks by producing syhtetic data out of real data while preserving statitical features. 
 
+The paper can be accessed here: [Data Synthesis based on Generative Adversarial Networks](http://www.vldb.org/pvldb/vol11/p1071-park.pdf "tableGAN")
 
 ## Prerequisites
 
 - Python 2.7 or Python 3.3+
-- [Tensorflow 0.12.1](https://github.com/tensorflow/tensorflow/tree/r0.12)
-- [SciPy,Numpy](http://www.scipy.org/install.html)
+- [Tensorflow](https://www.tensorflow.org/)
+- [SciPy,Numpy](http://www.scipy.org/)
+- [Pandas](https://pandas.pydata.org/)
 
 
 

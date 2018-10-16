@@ -1,5 +1,8 @@
 """
-Adopted from DCGAN paper code : https://arxiv.org/abs/1511.06434
+Paper: http://www.vldb.org/pvldb/vol11/p1071-park.pdf
+Authors: Mahmoud Mohammadi, Noseong Park Adopted from https://github.com/carpedm20/DCGAN-tensorflow
+Created : 07/20/2017
+Modified: 10/15/2018
 """
 
 from __future__ import division
