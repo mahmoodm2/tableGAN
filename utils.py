@@ -6,8 +6,6 @@ Modified: 10/15/2018
 """
 from __future__ import division
 import math
-import json
-import random
 import pprint
 import scipy.misc
 import numpy as np
@@ -16,17 +14,9 @@ from six.moves import xrange
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-import pickle
 import os
-
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
-from scipy import stats
 
-from openpyxl import Workbook
-from openpyxl import load_workbook
-
-import matplotlib as mpl
 
 from sklearn import preprocessing
 import pickle

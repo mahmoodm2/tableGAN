@@ -70,11 +70,9 @@ def main(_):
         os.makedirs(FLAGS.sample_dir)
 
       test_cases = [
-
-         { 'id':'dcgan', 'alpha' : 1.0 , 'beta':0.0 , 'delta_v': 0.0 , 'delta_m' : 0.0}   #High Quality Data
-         ,{ 'id':'OI_11_00', 'alpha' : 1.0 , 'beta':1.0 , 'delta_v': 0.0 , 'delta_m' : 0.0}
+         { 'id':'OI_11_00', 'alpha' : 1.0 , 'beta':1.0 , 'delta_v': 0.0 , 'delta_m' : 0.0}
          ,{ 'id':'OI_11_11', 'alpha' : 1.0 , 'beta':1.0 , 'delta_v': 0.1 , 'delta_m' : 0.1}
-         ,{ 'id':'OI_11_22', 'alpha' : 1.0 , 'beta':1.0 , 'delta_v': 0.2 , 'delta_m' : 0.2}   #High Privacy Data
+         ,{ 'id':'OI_11_22', 'alpha' : 1.0 , 'beta':1.0 , 'delta_v': 0.2 , 'delta_m' : 0.2}
 
         ,{ 'id':'OI_101_00', 'alpha' : 1.0 , 'beta':0.1 , 'delta_v': 0.0 , 'delta_m' : 0.0}
         ,{ 'id':'OI_101_11', 'alpha' : 1.0 , 'beta':0.1 , 'delta_v': 0.1 , 'delta_m' : 0.1}

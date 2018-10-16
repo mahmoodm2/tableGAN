@@ -7,8 +7,9 @@ The paper can be accessed here: [Data Synthesis based on Generative Adversarial 
 
 - Python 2.7 or Python 3.3+
 - [Tensorflow](https://www.tensorflow.org/)
-- [SciPy,Numpy](http://www.scipy.org/)
+- [SciPy,Numpy,matplotlib](http://www.scipy.org/)
 - [Pandas](https://pandas.pydata.org/)
+- [Scikit-learn](http://scikit-learn.org)
 
 
 
@@ -41,7 +42,7 @@ To **Train** a model with the datasets it is required to run the follwong scipt 
    - **TEST_ID** parameter is a parameter defining a set of internal paramaters affecting the quality or privacy level of synthesized data. 
            
         - **TEST_ID** used in training and generating command lines should have one of the following values :
-            -   'dcgan'   : 'beta':0.0 , 'delta_v': 0.0 , 'delta_m' : 0.0        
+                  
             -   'OI_11_00': 'beta':1.0 , 'delta_v': 0.0 , 'delta_m' : 0.0
             -   'OI_11_11': 'beta':1.0 , 'delta_v': 0.1 , 'delta_m' : 0.1 
             -   'OI_11_22': 'beta':1.0 , 'delta_v': 0.2 , 'delta_m' : 0.2                
@@ -56,15 +57,15 @@ To **Train** a model with the datasets it is required to run the follwong scipt 
 **Example**: Training a model for Adult dataset based on the dcgan parameter-set (as also mentioned in train_Adult.sh script file).
 
 ``` bash
-$ python main.py --dataset=Adult   --test_id=dcgan  --train
+$ python main.py --dataset=Adult   --test_id=OI_11_00  --train
 
 ```
 
 **Important :** Once the trainig is complete, checkpoint files will be generated in the **/checkpoint/DATASET_NAME/TEST_ID/DATASET_NAME_64-8-8** folder. For example for the above training command the 
 following files will be created:
- - /checkpoint/Adult/dcgan/Adult_64_8_8/tableGAN_model_6002.data-0000-of -00001
- - /checkpoint/Adult/dcgan/Adult_64_8_8/tableGAN_model_6002.index
- - /checkpoint/Adult/dcgan/Adult_64_8_8/tableGAN_model_6002.meta
+ - /checkpoint/Adult/OI_11_00/Adult_64_8_8/tableGAN_model_6002.data-0000-of -00001
+ - /checkpoint/Adult/OI_11_00/Adult_64_8_8/tableGAN_model_6002.index
+ - /checkpoint/Adult/OI_11_00/Adult_64_8_8/tableGAN_model_6002.meta
  
  These files will be used automatically to generate the synthesized data.
 
@@ -79,7 +80,7 @@ To **Generate** synthetic data using a trained model use:
 All the parameters are similar to the training phase but the **--train--** paramter should **NOT** be applied (as mentioned in generate_Adult.sh script file).
 ```
 Example:
-$ python main.py --dataset=Adult   --test_id=dcgan  
+$ python main.py --dataset=Adult   --test_id=OI_11_00  
 ```
 
 
