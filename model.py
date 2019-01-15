@@ -56,6 +56,9 @@ class TableGan(object):
         self.output_height = output_height
         self.output_width = output_width
 
+        self.feature_size =0
+        self.attrib_num =1
+
         self.y_dim = y_dim
         self.z_dim = z_dim
 
@@ -98,13 +101,13 @@ class TableGan(object):
         # self.input_fname_pattern = input_fname_pattern
         self.checkpoint_dir = checkpoint_dir 
 
-        if self.dataset_name in ["LACity", "Health", "Adult", "Ticket"]:
+        #mm if self.dataset_name in ["LACity", "Health", "Adult", "Ticket"]:
 
-            self.data_X, self.data_y, self.data_y_normal = self.load_dataset(is_shadow_gan)
-            self.c_dim = 1
+        self.data_X, self.data_y, self.data_y_normal = self.load_dataset(is_shadow_gan)
+        self.c_dim = 1
 
-        else:
-            return
+        #mm else:
+        #     return
 
         self.grayscale = (self.c_dim == 1)
         print("c_dim 1= " + str(self.c_dim))
@@ -120,16 +123,17 @@ class TableGan(object):
         self.y_normal = tf.placeholder(
                 tf.int16, [self.batch_size, 1], name='y_normal')
 
-        if self.crop:
-            image_dims = [self.output_height, self.output_width, self.c_dim]
-        else:
-            image_dims = [self.input_height, self.input_width, self.c_dim]
+        # if self.crop:
+        #     image_dims = [self.output_height, self.output_width, self.c_dim]
+        # else:
+        #     image_dims = [self.input_height, self.input_width, self.c_dim]
 
+        data_dims = [self.input_height, self.input_width, self.c_dim]
         self.inputs = tf.placeholder(
-             tf.float32, [self.batch_size] + image_dims, name='inputs')
+             tf.float32, [self.batch_size] + data_dims, name='inputs')
 
         self.sample_inputs = tf.placeholder(
-            tf.float32, [self.sample_num] + image_dims, name='sample_inputs')
+            tf.float32, [self.sample_num] + data_dims, name='sample_inputs')
 
         inputs = self.inputs
 
@@ -167,15 +171,15 @@ class TableGan(object):
 
             # self.C_, self.C_logits_ , self.C_features=  self.classification(self.GC, self.y, reuse = True)
 
-        else:
-            self.G = self.generator(self.z)
-            self.D, self.D_logits = self.discriminator(inputs)
-
-            self.sampler = self.sampler(self.z)
-
-            self.sampler_disc = self.sampler_discriminator(self.inputs)
-
-            self.D_, self.D_logits_ = self.discriminator(self.G, reuse=True)
+        # else:
+        #     self.G = self.generator(self.z)
+        #     self.D, self.D_logits = self.discriminator(inputs)
+        #
+        #     self.sampler = self.sampler(self.z)
+        #
+        #     self.sampler_disc = self.sampler_discriminator(self.inputs)
+        #
+        #     self.D_, self.D_logits_ = self.discriminator(self.G, reuse=True)
 
         self.d_sum = histogram_summary("d", self.D)
         self.d__sum = histogram_summary("d_", self.D_)
@@ -224,6 +228,10 @@ class TableGan(object):
         self.D_features_var_ = tf.reduce_mean(tf.square(self.D_features_ - self.D_features_mean_), axis=0, keep_dims=True)
 
         dim = self.D_features_mean.get_shape()[-1]
+
+        self.feature_size = dim
+
+        print("Feature Size = %s" %(self.D_features_mean.get_shape()[-1]))
 
         # Previous Global Mean for real Data
         self.prev_gmean = tf.placeholder(tf.float32, [1, dim], name='prev_gmean')
@@ -309,20 +317,20 @@ class TableGan(object):
 
         sample_z = np.random.uniform(-1, 1, size=(self.sample_num, self.z_dim))
 
-        if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
+        # if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
 
-            sample = self.data_X[0:self.sample_num]
+        sample = self.data_X[0:self.sample_num]
 
-            sample_labels = self.data_y[0:self.sample_num]
-            sample_labels_normal= self.data_y_normal[0:self.sample_num]
+        sample_labels = self.data_y[0:self.sample_num]
+        sample_labels_normal= self.data_y_normal[0:self.sample_num]
 
-            if (self.grayscale):
-                sample_inputs = np.array(sample).astype(
-                    np.float32)[:, :, :, None]
-            else:
-                sample_inputs = np.array(sample).astype(np.float32)
+        if (self.grayscale):
+             sample_inputs = np.array(sample).astype(
+                 np.float32)[:, :, :, None]
         else:
-            return
+            sample_inputs = np.array(sample).astype(np.float32)
+        # else:
+        #     return
 
         counter = 1
         start_time = time.time()
@@ -335,7 +343,9 @@ class TableGan(object):
         else:
             print(" [!] Load failed...")
 
-        feature_size = config.feature_size
+        # feature_size = config.feature_size
+
+        feature_size = self.feature_size
 
         gmean = np.zeros((1, feature_size), dtype=np.float32)
         gmean_ = np.zeros((1, feature_size), dtype=np.float32)
@@ -344,8 +354,8 @@ class TableGan(object):
 
         for epoch in xrange(config.epoch):
 
-            if config.dataset in ['mnist', 'LACity', 'Health', 'Adult', 'Ticket']:
-                batch_idxs = min(len(self.data_X),
+            # if config.dataset in ['mnist', 'LACity', 'Health', 'Adult', 'Ticket']:
+            batch_idxs = min(len(self.data_X),
                                  config.train_size) // config.batch_size  # train_size= np.inf
 
             seed = np.random.randint(100000000)
@@ -360,142 +370,142 @@ class TableGan(object):
 
             for idx in xrange(0, batch_idxs):
 
-                if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
+                # if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
 
-                    batch = self.data_X[idx * config.batch_size:(idx + 1) * config.batch_size]
+                batch = self.data_X[idx * config.batch_size:(idx + 1) * config.batch_size]
 
-                    batch_labels = self.data_y[idx * config.batch_size: (idx + 1) * config.batch_size]
+                batch_labels = self.data_y[idx * config.batch_size: (idx + 1) * config.batch_size]
 
-                    batch_labels_normal = self.data_y_normal[idx * config.batch_size: (idx + 1) * config.batch_size]
+                batch_labels_normal = self.data_y_normal[idx * config.batch_size: (idx + 1) * config.batch_size]
 
-                    if self.grayscale:
-                        batch_images = np.array(batch).astype(
-                            np.float32)[:, :, :, None]
-                    else:
-                        batch_images = np.array(batch).astype(np.float32)
-                    
+                if self.grayscale:
+                    batch_images = np.array(batch).astype(
+                        np.float32)[:, :, :, None]
                 else:
-                    batch_files = self.data[idx *
-                                            config.batch_size:(idx + 1) * config.batch_size]
-                    batch = [
-                        get_image(batch_file,
-                                  input_height=self.input_height,
-                                  input_width=self.input_width,
-                                  resize_height=self.output_height,
-                                  resize_width=self.output_width,
-                                  crop=self.crop,
-                                  grayscale=self.grayscale) for batch_file in batch_files]
-
-                    if self.grayscale:
-                        batch_images = np.array(batch).astype(
-                            np.float32)[:, :, :, None]
-                    else:
-                        batch_images = np.array(batch).astype(np.float32)
+                    batch_images = np.array(batch).astype(np.float32)
+                    
+                # else:
+                #     batch_files = self.data[idx *
+                #                             config.batch_size:(idx + 1) * config.batch_size]
+                #     batch = [
+                #         get_image(batch_file,
+                #                   input_height=self.input_height,
+                #                   input_width=self.input_width,
+                #                   resize_height=self.output_height,
+                #                   resize_width=self.output_width,
+                #                   crop=self.crop,
+                #                   grayscale=self.grayscale) for batch_file in batch_files]
+                #
+                #     if self.grayscale:
+                #         batch_images = np.array(batch).astype(
+                #             np.float32)[:, :, :, None]
+                #     else:
+                #         batch_images = np.array(batch).astype(np.float32)
 
                 batch_z = np.random.uniform(-1, 1, [config.batch_size, self.z_dim]) \
                     .astype(np.float32)
 
-                if config.dataset in ['LACity' , 'Health','Adult','Ticket']:
+                # if config.dataset in ['LACity' , 'Health','Adult','Ticket']:
                     
-                    # Update D network                    
-                    _, summary_str = self.sess.run([d_optim, self.d_sum],
-                                                   feed_dict={
-                        self.inputs: batch_images,
-                        self.z: batch_z,
-                        self.y: batch_labels,
-                        self.y_normal : batch_labels_normal
-                    })
-                    self.writer.add_summary(summary_str, counter)
+                # Update D network
+                _, summary_str = self.sess.run([d_optim, self.d_sum],
+                                               feed_dict={
+                    self.inputs: batch_images,
+                    self.z: batch_z,
+                    self.y: batch_labels,
+                    self.y_normal : batch_labels_normal
+                })
+                self.writer.add_summary(summary_str, counter)
 
-                    # Classifier  Update C network
-                    # _, summary_str = self.sess.run([c_optim, self.c_sum],
-                    #                                feed_dict={
-                    #     self.inputs: batch_images,
-                    #     self.z: batch_z,
-                    #     self.y: batch_labels,
-                    #     self.y_normal : batch_labels_normal
-                    # })
-                    # self.writer.add_summary(summary_str, counter)
+                # Classifier  Update C network
+                # _, summary_str = self.sess.run([c_optim, self.c_sum],
+                #                                feed_dict={
+                #     self.inputs: batch_images,
+                #     self.z: batch_z,
+                #     self.y: batch_labels,
+                #     self.y_normal : batch_labels_normal
+                # })
+                # self.writer.add_summary(summary_str, counter)
 
-                    # Update G network
-                    _, summary_str, gmean, gmean_, gvar, gvar_ = \
-                        self.sess.run([g_optim, self.g_sum, self.gmean, self.gmean_, self.gvar, self.gvar_],
-                                      feed_dict={
-                                        self.z: batch_z,
-                                        self.y: batch_labels,
-                                        self.inputs: batch_images,
-                                        self.y_normal: batch_labels_normal,
-                                        self.prev_gmean: gmean,
-                                        self.prev_gmean_: gmean_,
-                                        self.prev_gvar: gvar,
-                                        self.prev_gvar_: gvar_
-                                          })
+                # Update G network
+                _, summary_str, gmean, gmean_, gvar, gvar_ = \
+                    self.sess.run([g_optim, self.g_sum, self.gmean, self.gmean_, self.gvar, self.gvar_],
+                                  feed_dict={
+                                    self.z: batch_z,
+                                    self.y: batch_labels,
+                                    self.inputs: batch_images,
+                                    self.y_normal: batch_labels_normal,
+                                    self.prev_gmean: gmean,
+                                    self.prev_gmean_: gmean_,
+                                    self.prev_gvar: gvar,
+                                    self.prev_gvar_: gvar_
+                                      })
 
-                    self.writer.add_summary(summary_str, counter)
+                self.writer.add_summary(summary_str, counter)
 
-                    # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
-                    _, summary_str, gmean, gmean_, gvar, gvar_ = \
-                        self.sess.run([g_optim, self.g_sum, self.gmean, self.gmean_, self.gvar, self.gvar_],
-                                      feed_dict={self.z: batch_z,
-                                                 self.y: batch_labels,
-                                                 self.inputs: batch_images,
-                                                 self.y_normal: batch_labels_normal,
-                                                 self.prev_gmean: gmean,
-                                                 self.prev_gmean_: gmean_,
-                                                 self.prev_gvar: gvar,
-                                                 self.prev_gvar_: gvar_
-                                                 })
-                    self.writer.add_summary(summary_str, counter)
+                # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
+                _, summary_str, gmean, gmean_, gvar, gvar_ = \
+                    self.sess.run([g_optim, self.g_sum, self.gmean, self.gmean_, self.gvar, self.gvar_],
+                                  feed_dict={self.z: batch_z,
+                                             self.y: batch_labels,
+                                             self.inputs: batch_images,
+                                             self.y_normal: batch_labels_normal,
+                                             self.prev_gmean: gmean,
+                                             self.prev_gmean_: gmean_,
+                                             self.prev_gvar: gvar,
+                                             self.prev_gvar_: gvar_
+                                             })
+                self.writer.add_summary(summary_str, counter)
 
-                    # Classifier
-                    # errC = self.c_loss.eval({
-                    #     self.inputs: batch_images,
-                    #     #self.z: batch_z,
-                    #     self.y: batch_labels,
-                    #     self.y_normal : batch_labels_normal
-                    # })
+                # Classifier
+                # errC = self.c_loss.eval({
+                #     self.inputs: batch_images,
+                #     #self.z: batch_z,
+                #     self.y: batch_labels,
+                #     self.y_normal : batch_labels_normal
+                # })
 
-                    errD_fake = self.d_loss_fake.eval({
-                        self.z: batch_z,
-                        self.y: batch_labels
-                    })
-                    errD_real = self.d_loss_real.eval({
-                        self.inputs: batch_images,
-                        self.y: batch_labels
-                    })
+                errD_fake = self.d_loss_fake.eval({
+                    self.z: batch_z,
+                    self.y: batch_labels
+                })
+                errD_real = self.d_loss_real.eval({
+                    self.inputs: batch_images,
+                    self.y: batch_labels
+                })
 
-                    errG = self.g_loss.eval({
-                        self.z: batch_z,
-                        self.y: batch_labels,
-                        self.y_normal: batch_labels_normal,
-                        self.inputs: batch_images,
-                        self.prev_gmean: gmean,
-                        self.prev_gmean_: gmean_,
-                        self.prev_gvar: gvar,
-                        self.prev_gvar_: gvar_
-                       
-                    })
-                else:
-                    # Update D network
-                    _, summary_str = self.sess.run([d_optim, self.d_sum],
-                                                   feed_dict={self.inputs: batch_images, self.z: batch_z})
-                    self.writer.add_summary(summary_str, counter)
+                errG = self.g_loss.eval({
+                    self.z: batch_z,
+                    self.y: batch_labels,
+                    self.y_normal: batch_labels_normal,
+                    self.inputs: batch_images,
+                    self.prev_gmean: gmean,
+                    self.prev_gmean_: gmean_,
+                    self.prev_gvar: gvar,
+                    self.prev_gvar_: gvar_
 
-                    # Update G network
-                    _, summary_str = self.sess.run([g_optim, self.g_sum],
-                                                   feed_dict={self.z: batch_z})
-                    self.writer.add_summary(summary_str, counter)
-
-                    # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
-                    _, summary_str = self.sess.run([g_optim, self.g_sum],
-                                                   feed_dict={self.z: batch_z})
-
-                    self.writer.add_summary(summary_str, counter)
-
-                    errD = self.d_loss.eval(
-                        {self.inputs: batch_images})
-
-                    errG = self.g_loss.eval({self.z: batch_z})
+                })
+                # else:
+                #     # Update D network
+                #     _, summary_str = self.sess.run([d_optim, self.d_sum],
+                #                                    feed_dict={self.inputs: batch_images, self.z: batch_z})
+                #     self.writer.add_summary(summary_str, counter)
+                #
+                #     # Update G network
+                #     _, summary_str = self.sess.run([g_optim, self.g_sum],
+                #                                    feed_dict={self.z: batch_z})
+                #     self.writer.add_summary(summary_str, counter)
+                #
+                #     # Run g_optim twice to make sure that d_loss does not go to zero (different from paper)
+                #     _, summary_str = self.sess.run([g_optim, self.g_sum],
+                #                                    feed_dict={self.z: batch_z})
+                #
+                #     self.writer.add_summary(summary_str, counter)
+                #
+                #     errD = self.d_loss.eval(
+                #         {self.inputs: batch_images})
+                #
+                #     errG = self.g_loss.eval({self.z: batch_z})
 
                 counter += 1
                 print("Dataset: [%s] -> [%s] -> Epoch: [%2d] [%4d/%4d] time: %4.4f, d_loss: %.8f, g_loss: %.8f"
@@ -504,41 +514,40 @@ class TableGan(object):
 
                 if np.mod(counter, 100) == 1:
 
-                    if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
+                    # if config.dataset in ['LACity', 'Health', 'Adult', 'Ticket']:
 
-                        # Classifier
-                        # samples, d_loss, c_loss, g_loss = self.sess.run(
-                        #     [self.sampler, self.d_loss, self.c_loss,  self.g_loss],
-                        #     feed_dict={
-                        #         self.z: sample_z,
-                        #         self.inputs: sample_inputs,
-                        #         self.y: sample_labels,
-                        #         self.y_normal : sample_labels_normal,
-                        #         self.prev_gmean : gmean,
-                        #         self.prev_gmean_ :gmean_,
-                        #         self.prev_gvar : gvar,
-                        #         self.prev_gvar_: gvar_
+                    # Classifier
+                    # samples, d_loss, c_loss, g_loss = self.sess.run(
+                    #     [self.sampler, self.d_loss, self.c_loss,  self.g_loss],
+                    #     feed_dict={
+                    #         self.z: sample_z,
+                    #         self.inputs: sample_inputs,
+                    #         self.y: sample_labels,
+                    #         self.y_normal : sample_labels_normal,
+                    #         self.prev_gmean : gmean,
+                    #         self.prev_gmean_ :gmean_,
+                    #         self.prev_gvar : gvar,
+                    #         self.prev_gvar_: gvar_
 
-                        #     }
-                        # )          
+                    #     }
+                    # )
 
-                        # Without Classifier
-                        samples, d_loss, g_loss = self.sess.run(
-                            [self.sampler, self.d_loss, self.g_loss],
-                            feed_dict={
-                                self.z: sample_z,
-                                self.inputs: sample_inputs,
-                                self.y: sample_labels,
-                                self.y_normal: sample_labels_normal,
-                                self.prev_gmean: gmean,
-                                self.prev_gmean_: gmean_,
-                                self.prev_gvar: gvar,
-                                self.prev_gvar_: gvar_
+                    # Without Classifier
+                    samples, d_loss, g_loss = self.sess.run(
+                        [self.sampler, self.d_loss, self.g_loss],
+                        feed_dict={
+                            self.z: sample_z,
+                            self.inputs: sample_inputs,
+                            self.y: sample_labels,
+                            self.y_normal: sample_labels_normal,
+                            self.prev_gmean: gmean,
+                            self.prev_gmean_: gmean_,
+                            self.prev_gvar: gvar,
+                            self.prev_gvar_: gvar_
+                        }
+                    )
 
-                            }
-                        )
-
-                        print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss))
+                    print("[Sample] d_loss: %.8f, g_loss: %.8f" % (d_loss, g_loss))
 
                 if np.mod(counter, 1000) == 2:
                     self.save(config.checkpoint_dir, counter)
@@ -773,8 +782,69 @@ class TableGan(object):
             return tf.nn.tanh(h4)
               
     def load_dataset(self, load_fake_data=False):
-        
-        return load_tabular_data(self.dataset_name, self.input_height, self.y_dim, self.test_id, load_fake_data)
+
+        return self.load_tabular_data(self.dataset_name, self.input_height, self.y_dim, self.test_id, load_fake_data)
+
+
+    def load_tabular_data(self, dataset_name, dim, classes=2, test_id='', load_fake_data=False):
+
+        # if load_fake_data is True:
+        #   print("Using Fake Data ....")
+        #
+        #   train_data_path = './samples/' + dataset_name + '/' + test_id + '/' + test_id + '_scaled_fake_tabular'
+        #
+        # else:
+        #   train_data_path = './data/' + dataset_name + '/train_' + dataset_name + '_cleaned'
+        #   train_label_path = './data/' + dataset_name + '/train_' + dataset_name + '_labels'
+
+        self.train_data_path =  "./" + dataset_name
+        self.train_label_path = "./" + dataset_name + '_labels'
+
+        if os.path.exists(self.train_data_path + ".csv") :
+
+            X = pd.read_csv(self.train_data_path + ".csv")
+            print("Loading CSV input file : %s" %(self.train_data_path + ".csv"))
+            
+            self.attrib_num = X.shape[1]
+
+            y = np.genfromtxt(self.train_label_path + ".csv", delimiter=',')
+
+            print("Loading CSV input file : %s" %(self.train_label_path + ".csv"))
+
+            self.zero_one_ratio = 1.0 - (np.sum(y) / len(y))
+
+        elif os.path.exists(self.train_data_path + ".pickle") :
+            with open(self.train_data_path + '.pickle', 'rb') as handle:
+                X = pickle.load(handle)
+
+            with open(self.train_label_path + '.pickle', 'rb') as handle:
+                y = pickle.load(handle)
+
+            print("Loading pickle file ....")
+        else:
+            print("Error Loading Dataset !!")
+            exit(1)
+
+        min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-1, 1))
+
+        # Normalizing Initial Data
+        X = pd.DataFrame(min_max_scaler.fit_transform(X))
+        # X is [rows * config.attrib_num] 15000 * 23
+
+        padded_ar = padding_duplicating(X , dim * dim )
+
+        X = reshape(padded_ar , dim  )
+
+        print( "Final Real Data shape = " + str(X.shape)) # 15000 * 8 * 8
+
+        y = y.reshape(y.shape[0], -1).astype(np.int16)
+
+        y_onehot = np.zeros((len(y), classes), dtype=np.float)
+        for i, lbl in enumerate(y):
+            y_onehot[i, y[i]] = 1.0
+
+        return X , y_onehot, y
+
 
     @property
     def model_dir(self):

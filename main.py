@@ -11,12 +11,12 @@ import sys
 
 from model import TableGan
 
-from utils import pp, visualize, show_all_variables
+from utils import pp, generate_data, show_all_variables
 
 
 flags = tf.app.flags
 
-flags.DEFINE_integer("epoch", 200, "Epoch to train [25]")
+flags.DEFINE_integer("epoch", 10, "Epoch to train [25]")
 
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
@@ -35,7 +35,7 @@ flags.DEFINE_string("checkpoint_dir", "", "Directory name to save the checkpoint
 flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
 flags.DEFINE_boolean("train", False, "True for training, False for testing [False]")
 flags.DEFINE_boolean("crop", False, "True for training, False for testing [False]")
-flags.DEFINE_boolean("visualize", False, "True for visualizing, False for nothing [False]")
+flags.DEFINE_boolean("generate_data", False, "True for visualizing, False for nothing [False]")
 
 flags.DEFINE_float("alpha", 0.5, "The weight of original GAN part of loss function [0-1.0]")
 flags.DEFINE_float("beta", 0.5, "The weight of information loss part of loss function [0-1.0]")
@@ -95,49 +95,50 @@ def main(_):
           print(case)
 
       if not found:
-        print(" No Test ID found!!")
-        exit()
+        print("Using OI_11_00")
+        FLAGS.test_id="OI_11_00"
+        FLAGS.alpha = 1.0
+        FLAGS.beta  = 1.0
+        FLAGS.delta_m  = 0.0
+        FLAGS.delta_v   = 0.0
 
-      if FLAGS.dataset == 'LACity':
-        FLAGS.feature_size = 266
-        FLAGS.label_col = 8
-        FLAGS.attrib_num = 23
-        FLAGS.input_height = 8
-        FLAGS.input_width = 8
-        FLAGS.output_height = 8
-        FLAGS.output_width = 8
+      #
+      # if FLAGS.dataset == 'LACity':
+      #   FLAGS.feature_size = 266
+      #   FLAGS.label_col = 8
+      #   FLAGS.attrib_num = 23
+      #   FLAGS.input_height = 8
+      #   FLAGS.input_width = 8
+      #   FLAGS.output_height = 8
+      #   FLAGS.output_width = 8
+      #
+      # elif FLAGS.dataset == 'Adult':
+      #   FLAGS.feature_size = 266
+      #   FLAGS.label_col = 12
+      #   FLAGS.attrib_num = 14
+      #
+      #
+      # elif FLAGS.dataset == 'Health':
+      #   FLAGS.feature_size = 266
+      #   FLAGS.label_col = 31
+      #   FLAGS.attrib_num = 32
+      #
+      #
+      # elif FLAGS.dataset == 'Ticket':
+      #   FLAGS.feature_size = 1058
+      #   FLAGS.label_col = 18
+      #   FLAGS.attrib_num = 32
 
-      elif FLAGS.dataset == 'Adult':
-        FLAGS.feature_size = 266
-        FLAGS.label_col = 12
-        FLAGS.attrib_num = 14
-        FLAGS.input_height = 8
-        FLAGS.input_width = 8
-        FLAGS.output_height = 8
-        FLAGS.output_width = 8
 
-      elif FLAGS.dataset == 'Health':
-        FLAGS.feature_size = 266
-        FLAGS.label_col = 31
-        FLAGS.attrib_num = 32
-        FLAGS.input_height = 8
-        FLAGS.input_width = 8
-        FLAGS.output_height = 8
-        FLAGS.output_width = 8
-
-      elif FLAGS.dataset == 'Ticket':
-        FLAGS.feature_size = 1058
-        FLAGS.label_col = 18
-        FLAGS.attrib_num = 32
-        FLAGS.input_height = 8
-        FLAGS.input_width = 8
-        FLAGS.output_height = 8
-        FLAGS.output_width = 8
+      FLAGS.input_height = 8
+      FLAGS.input_width = 8
+      FLAGS.output_height = 8
+      FLAGS.output_width = 8
 
       if FLAGS.shadow_gan:
         checkpoint_folder = FLAGS.checkpoint_par_dir + '/' + FLAGS.dataset + "/" + 'atk_' + FLAGS.test_id
       else:
-        checkpoint_folder = FLAGS.checkpoint_par_dir + '/' + FLAGS.dataset + "/" + FLAGS.test_id
+        checkpoint_folder = FLAGS.checkpoint_par_dir + '/' + FLAGS.dataset # + "/" + FLAGS.test_id
 
       if not os.path.exists(checkpoint_folder):
         os.makedirs(checkpoint_folder)
@@ -153,8 +154,8 @@ def main(_):
       print("Chekcpoint : " + FLAGS.checkpoint_dir)
 
       with tf.Session(config=run_config) as sess:
-        if FLAGS.dataset  in [  'LACity' , 'Health' , 'Adult', 'Ticket']:
-          tablegan = TableGan(
+        # if FLAGS.dataset  in [  'LACity' , 'Health' , 'Adult', 'Ticket']:
+        tablegan = TableGan(
               sess,
               input_width=FLAGS.input_width,
               input_height=FLAGS.input_height,
@@ -176,13 +177,14 @@ def main(_):
               is_shadow_gan = FLAGS.shadow_gan,
               test_id = FLAGS.test_id
               )
-          show_all_variables()
 
-          if FLAGS.train:
+        show_all_variables()
+
+        if FLAGS.train:
 
             tablegan.train(FLAGS)
 
-          else:
+        else:
 
             if not tablegan.load(FLAGS.checkpoint_dir)[0]:
 
@@ -194,11 +196,12 @@ def main(_):
             else:
               OPTION = 1
 
-            visualize(sess, tablegan, FLAGS, OPTION)
+            generate_data(sess, tablegan, FLAGS, OPTION)
 
             print('Time Elapsed: ')
             b = datetime.datetime.now()
             print( b -a)
 
 if __name__ == '__main__':
+
     tf.app.run()

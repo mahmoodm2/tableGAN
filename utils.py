@@ -57,55 +57,6 @@ def reshape(data, dim):
     return data
 
 
-def load_tabular_data(dataset_name, dim, classes=2, test_id='', load_fake_data=False):
-
-  if load_fake_data is True:
-    print("Using Fake Data ....")
-
-    train_data_path = './samples/' + dataset_name + '/' + test_id + '/' + test_id + '_scaled_fake_tabular'
-
-  else:
-    train_data_path = './data/' + dataset_name + '/train_' + dataset_name + '_cleaned'
-    train_label_path = './data/' + dataset_name + '/train_' + dataset_name + '_labels'
-
-  if os.path.exists(train_data_path + ".csv") :
-      X = pd.read_csv(train_data_path + ".csv")
-
-      y = np.genfromtxt(train_label_path + ".csv", delimiter=',')
-      print("Loading CSV file ....")
-
-  elif os.path.exists(train_data_path + ".pickle") :
-      with open(train_data_path + '.pickle', 'rb') as handle:
-          X = pickle.load(handle)
-
-      with open(train_label_path + '.pickle', 'rb') as handle:
-          y = pickle.load(handle)
-
-      print("Loading pickle file ....")
-  else:
-      print("Error Loading Dataset !!")
-      exit(1)
-
-  min_max_scaler = preprocessing.MinMaxScaler(feature_range=(-1, 1))
-    
-  # Normalizing Initial Data
-  X = pd.DataFrame(min_max_scaler.fit_transform(X))
-  # X is [rows * config.attrib_num] 15000 * 23
-
-  padded_ar = padding_duplicating(X , dim * dim )
-
-  X = reshape(padded_ar , dim  )
-
-  print( "Final Real Data shape = " + str(X.shape)) # 15000 * 8 * 8
-
-  y = y.reshape(y.shape[0], -1).astype(np.int16)
-
-  y_onehot = np.zeros((len(y), classes), dtype=np.float)
-  for i, lbl in enumerate(y):
-      y_onehot[i, y[i]] = 1.0
-
-  return X , y_onehot, y
-      
 def show_all_variables():
 
   model_vars = tf.trainable_variables()
@@ -261,7 +212,7 @@ def to_json(output_path, *layers):
     layer_f.write(" ".join(lines.replace("'","").split()))
 
 def make_gif(images, fname, duration=2, true_image=False):
-  import moviepy.editor as mpy
+  # import moviepy.editor as mpy
 
   def make_frame(t):
     try:
@@ -378,20 +329,14 @@ def compare(real , fake, save_dir, col_prefix, CDF = True , Hist = True) :
 
 
     
-def visualize(sess, dcgan, config, option):
+def generate_data(sess, model, config, option):
 
   print("Start Generatig Data .... ")
   image_frame_dim = int(math.ceil(config.batch_size**.5))
 
-  if option == 0:
-    z_sample = np.random.uniform(-0.5, 0.5, size=(config.batch_size, dcgan.z_dim))
+  if option == 1:
 
-    samples = sess.run(dcgan.sampler, feed_dict={dcgan.z: z_sample})
-    save_images(samples, [image_frame_dim, image_frame_dim], './samples/test_%s.png' % strftime("%Y%m%d%H%M%S", gmtime()))
-
-  elif option == 1:    
-
-      input_size = len(dcgan.data_X)
+      input_size = len(model.data_X)
 
       dim= config.output_width #8
 
@@ -402,10 +347,10 @@ def visualize(sess, dcgan, config, option):
       if not os.path.exists(save_dir):
             os.makedirs(save_dir)  
 
-      save_dir = save_dir + "/" + config.test_id
+      # save_dir = save_dir + "/" + config.test_id
 
-      if not os.path.exists(save_dir):
-            os.makedirs(save_dir) 
+      # if not os.path.exists(save_dir):
+      #       os.makedirs(save_dir)
 
       # samples_dir = save_dir + '/samples'
       #
@@ -415,22 +360,23 @@ def visualize(sess, dcgan, config, option):
       for idx in xrange( input_size //config.batch_size) :
 
         print(" [*] %d" % idx)
-        z_sample = np.random.uniform(-1, 1, size=(config.batch_size, dcgan.z_dim))
+        z_sample = np.random.uniform(-1, 1, size=(config.batch_size, model.z_dim))
 
-        if config.dataset == "LACity":         
-          zero_labeles= 0.48       # Based the ratio of labels in initial dataset    
+        zero_labeles = model.zero_one_ratio
 
-        elif config.dataset == "Health": 
-          zero_labeles= 0.91          # Based the ratio of labels in initial dataset
-
-        elif config.dataset == "Adult":     
-          # Total =32561 ,  0s = 22980  = 70.6%          
-          zero_labeles= 0.706       # Based the ratio of labels in initial dataset
-
-        elif config.dataset == "Ticket":
-          # Total =80000 
-          zero_labeles= 0.575 # Based the ratio of labels in initial dataset
-          
+        # if config.dataset == "LACity":
+        #   zero_labeles= 0.48       # Based the ratio of labels in initial dataset
+        #
+        # elif config.dataset == "Health":
+        #   zero_labeles= 0.91          # Based the ratio of labels in initial dataset
+        #
+        # elif config.dataset == "Adult":
+        #   # Total =32561 ,  0s = 22980  = 70.6%
+        #   zero_labeles= 0.706       # Based the ratio of labels in initial dataset
+        #
+        # elif config.dataset == "Ticket":
+        #   # Total =80000
+        #   zero_labeles= 0.575 # Based the ratio of labels in initial dataset
 
         y = np.ones((config.batch_size,1))
           
@@ -440,19 +386,16 @@ def visualize(sess, dcgan, config, option):
         print( "y shape " + str( y.shape))
         y=y.astype('int16')
 
-
-        y_one_hot = np.zeros((config.batch_size, dcgan.y_dim))
+        y_one_hot = np.zeros((config.batch_size, model.y_dim))
 
         # y indicates the index of ones in y_one_hot : in this case y_dim =2 so indexe are 0 or 1 
         y_one_hot[np.arange(config.batch_size), y] = 1
 
-        samples = sess.run(dcgan.sampler, feed_dict={dcgan.z: z_sample, dcgan.y: y_one_hot , dcgan.y_normal : y })
+        samples = sess.run(model.sampler, feed_dict={model.z: z_sample, model.y: y_one_hot , model.y_normal : y})
         
 
         # Merging Data for each batch size
         merged_data[idx * config.batch_size : (idx+1) * config.batch_size] = samples.reshape(samples.shape[0],samples.shape[1],samples.shape[2]) # 234 * 64 * 16 *16
-
-
 
       # All generated data is ready in merged_data , now reshape it to a tabular marix
 
@@ -460,16 +403,15 @@ def visualize(sess, dcgan, config, option):
 
 
       # Selecting the correct number of atributes (used in training)
-      fake_data = fake_data [:,: config.attrib_num]
+      fake_data = fake_data [:,: model.attrib_num]
 
       print( " Fake Data shape= " + str(fake_data.shape))
 
 
-      origin_data_path = './data/'+ config.dataset+ '/train_'+ config.dataset + '_cleaned'
+      origin_data_path = model.train_data_path #'./data/'+ config.dataset+ '/train_'+ config.dataset + '_cleaned'
 
       if os.path.exists(origin_data_path + ".csv") :
           origin_data = pd.read_csv(origin_data_path + ".csv")
-
 
       elif os.path.exists(origin_data_path + ".pickle") :
             with open(origin_data_path + '.pickle', 'rb') as handle:
@@ -497,7 +439,7 @@ def visualize(sess, dcgan, config, option):
 
       rsf_out = pd.DataFrame(round_scaled_fake)
 
-      rsf_out.to_csv(save_dir +'/' + config.dataset +"_" + config.test_id + "_fake.csv" ,index=False)
+      rsf_out.to_csv(save_dir +'/' + config.dataset + "_fake.csv" ,index=False)
 
       print( "Generated Data shape = " + str(round_scaled_fake.shape))
 
@@ -519,7 +461,7 @@ def visualize(sess, dcgan, config, option):
      
         output_file= os.path.join(save_dir , config.dataset+ '_' + config.test_id+  '_atk_fake_data.csv')
 
-        discriminator_sampling( data_x ,[], output_file, 'In' , config , dcgan, sess)
+        discriminator_sampling(data_x, [], output_file, 'In', config, model, sess)
 
       elif config.shgan_input_type == 2: 
         # Applying Test Data to Shadow GAN
@@ -535,12 +477,11 @@ def visualize(sess, dcgan, config, option):
 
         output_file= os.path.join(save_dir ,config.dataset+ '_' + config.test_id+  '_atk_test_data.csv')
 
-        discriminator_sampling( data_x ,data_y ,  output_file,'Out', config , dcgan, sess)
+        discriminator_sampling(data_x, data_y, output_file,'Out', config, model, sess)
 
       elif config.shgan_input_type == 3:
          # Applying Original Train Data to Shadow GAN
       
-
           with open('./data/'+ config.dataset+ '/train_' + config.dataset + '_cleaned.pickle', 'rb') as handle:
               data_x = pickle.load(handle)
 
@@ -551,11 +492,8 @@ def visualize(sess, dcgan, config, option):
 
           output_file= os.path.join(save_dir , config.dataset+ '_' + config.test_id+  '_atk_train_data.csv')
 
-          discriminator_sampling( data_x ,data_y ,  output_file,'', config , dcgan, sess)
-      
+          discriminator_sampling(data_x, data_y, output_file,'', config, model, sess)
 
-      
-       
 def discriminator_sampling(input , lables , output_file, title , config, dcgan, sess) :
 
   dim= config.output_width #8
