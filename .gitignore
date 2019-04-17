@@ -1,0 +1,12 @@
+
+\.idea/
+
+\.ipynb_checkpoints/
+
+__pycache__/
+
+checkpoint/
+
+samples/
+
+logs/

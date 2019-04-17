@@ -8,6 +8,7 @@ Modified: 10/15/2018
 from __future__ import division
 
 import time
+import tensorflow as tf
 from ops import *
 from utils import *
 
@@ -413,7 +414,7 @@ class TableGan(object):
                     self.inputs: batch_images,
                     self.z: batch_z,
                     self.y: batch_labels,
-                    self.y_normal : batch_labels_normal
+                    self.y_normal: batch_labels_normal
                 })
                 self.writer.add_summary(summary_str, counter)
 
@@ -785,7 +786,6 @@ class TableGan(object):
 
         return self.load_tabular_data(self.dataset_name, self.input_height, self.y_dim, self.test_id, load_fake_data)
 
-
     def load_tabular_data(self, dataset_name, dim, classes=2, test_id='', load_fake_data=False):
 
         # if load_fake_data is True:
@@ -797,12 +797,12 @@ class TableGan(object):
         #   train_data_path = './data/' + dataset_name + '/train_' + dataset_name + '_cleaned'
         #   train_label_path = './data/' + dataset_name + '/train_' + dataset_name + '_labels'
 
-        self.train_data_path =  "./" + dataset_name
-        self.train_label_path = "./" + dataset_name + '_labels'
+        self.train_data_path =  f"./data/{dataset_name}/{dataset_name}"
+        self.train_label_path = f"./data/{dataset_name}/{dataset_name}_labels"
 
-        if os.path.exists(self.train_data_path + ".csv") :
+        if os.path.exists(self.train_data_path + ".csv"):
 
-            X = pd.read_csv(self.train_data_path + ".csv")
+            X = pd.read_csv(self.train_data_path + ".csv", sep=';')
             print("Loading CSV input file : %s" %(self.train_data_path + ".csv"))
             
             self.attrib_num = X.shape[1]
@@ -833,17 +833,16 @@ class TableGan(object):
 
         padded_ar = padding_duplicating(X , dim * dim )
 
-        X = reshape(padded_ar , dim  )
+        X = reshape(padded_ar, dim)
 
         print( "Final Real Data shape = " + str(X.shape)) # 15000 * 8 * 8
 
         y = y.reshape(y.shape[0], -1).astype(np.int16)
-
         y_onehot = np.zeros((len(y), classes), dtype=np.float)
         for i, lbl in enumerate(y):
             y_onehot[i, y[i]] = 1.0
 
-        return X , y_onehot, y
+        return X, y_onehot, y
 
 
     @property
