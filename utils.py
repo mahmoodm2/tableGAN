@@ -42,7 +42,6 @@ def padding_duplicating(data, row_size):
 
     # Duplicating Values 
     for i in range(1, arr_data.shape[1] // col_num):
-        print(i)
         arr_data[:, col_num * i: col_num * (i + 1)] = arr_data[:, 0: col_num]
 
     return arr_data
@@ -403,7 +402,7 @@ def generate_data(sess, model, config, option):
         origin_data_path = model.train_data_path  # './data/'+ config.dataset+ '/train_'+ config.dataset + '_cleaned'
 
         if os.path.exists(origin_data_path + ".csv"):
-            origin_data = pd.read_csv(origin_data_path + ".csv")
+            origin_data = pd.read_csv(origin_data_path + ".csv", sep=';')
 
         elif os.path.exists(origin_data_path + ".pickle"):
             with open(origin_data_path + '.pickle', 'rb') as handle:
@@ -430,7 +429,7 @@ def generate_data(sess, model, config, option):
 
         rsf_out = pd.DataFrame(round_scaled_fake)
 
-        rsf_out.to_csv(save_dir + '/' + config.dataset + "_fake.csv", index=False)
+        rsf_out.to_csv(f'{save_dir}/{config.dataset}_{config.test_id}_fake.csv' , index=False, sep=';')
 
         print("Generated Data shape = " + str(round_scaled_fake.shape))
 

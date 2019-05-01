@@ -20,8 +20,9 @@ flags.DEFINE_integer("epoch", 10, "Epoch to train [25]")
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
 flags.DEFINE_integer("train_size", sys.maxsize, "The size of train images [np.inf]")
+flags.DEFINE_integer("y_dim", 2, "Number of unique labels")
 
-flags.DEFINE_integer("batch_size", 256, "The size of batch images [64]")
+flags.DEFINE_integer("batch_size", 500, "The size of batch images [64]")
 
 flags.DEFINE_integer("input_height", 16, "The size of image to use (will be center cropped). [108]")
 flags.DEFINE_integer("input_width", None,
@@ -103,33 +104,6 @@ def main(_):
         FLAGS.delta_m = 0.0
         FLAGS.delta_v = 0.0
 
-    #
-    # if FLAGS.dataset == 'LACity':
-    #   FLAGS.feature_size = 266
-    #   FLAGS.label_col = 8
-    #   FLAGS.attrib_num = 23
-    #   FLAGS.input_height = 8
-    #   FLAGS.input_width = 8
-    #   FLAGS.output_height = 8
-    #   FLAGS.output_width = 8
-    #
-    # elif FLAGS.dataset == 'Adult':
-    #   FLAGS.feature_size = 266
-    #   FLAGS.label_col = 12
-    #   FLAGS.attrib_num = 14
-    #
-    #
-    # elif FLAGS.dataset == 'Health':
-    #   FLAGS.feature_size = 266
-    #   FLAGS.label_col = 31
-    #   FLAGS.attrib_num = 32
-    #
-    #
-    # elif FLAGS.dataset == 'Ticket':
-    #   FLAGS.feature_size = 1058
-    #   FLAGS.label_col = 18
-    #   FLAGS.attrib_num = 32
-
     FLAGS.input_height = 7
     FLAGS.input_width = 7
     FLAGS.output_height = 7
@@ -138,7 +112,7 @@ def main(_):
     if FLAGS.shadow_gan:
         checkpoint_folder = FLAGS.checkpoint_par_dir + '/' + FLAGS.dataset + "/" + 'atk_' + FLAGS.test_id
     else:
-        checkpoint_folder = FLAGS.checkpoint_par_dir + '/' + FLAGS.dataset  # + "/" + FLAGS.test_id
+        checkpoint_folder = f'{FLAGS.checkpoint_par_dir}/{FLAGS.dataset}/{FLAGS.test_id}'
 
     if not os.path.exists(checkpoint_folder):
         os.makedirs(checkpoint_folder)
@@ -146,6 +120,7 @@ def main(_):
     FLAGS.checkpoint_dir = checkpoint_folder
 
     pp.pprint(flags.FLAGS.__flags)
+    print(FLAGS.y_dim)
 
     # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
     run_config = tf.ConfigProto()
@@ -154,7 +129,6 @@ def main(_):
     print("Chekcpoint : " + FLAGS.checkpoint_dir)
 
     with tf.Session(config=run_config) as sess:
-        # if FLAGS.dataset  in [  'LACity' , 'Health' , 'Adult', 'Ticket']:
         tablegan = TableGan(
             sess,
             input_width=FLAGS.input_width,
@@ -163,7 +137,7 @@ def main(_):
             output_height=FLAGS.output_height,
             batch_size=FLAGS.batch_size,
             sample_num=FLAGS.batch_size,
-            y_dim=184,
+            y_dim=FLAGS.y_dim,
             dataset_name=FLAGS.dataset,
             crop=FLAGS.crop,
             checkpoint_dir=FLAGS.checkpoint_dir,
@@ -181,7 +155,6 @@ def main(_):
         show_all_variables()
 
         if FLAGS.train:
-
             tablegan.train(FLAGS)
 
         else:
