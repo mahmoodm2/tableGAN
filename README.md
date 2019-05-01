@@ -19,7 +19,7 @@ All the datasets used in tableGAN should be placed in **/data/** directory, each
 
 ### Input Data Files
 Each data set folder contains different files used for the training phases:
-- **DATASET_train_cleaned.csv**: Contains cleaned data from original source of the dataset (above link), stored in a CSV format. This is used for **training** only.
+- **train_DATASET_cleaned.csv**: Contains cleaned data from original source of the dataset (above link), stored in a CSV format. This is used for **training** only.
 
 ## Usage
 
